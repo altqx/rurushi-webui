@@ -1,90 +1,94 @@
-"use client";
+'use client'
 
-import { useEffect, useState, useRef } from "react";
-import type { ConfigResponse, FileListResponse, ShowListResponse } from "@/lib/api";
-import { api } from "@/lib/api";
+import { useEffect, useState, useRef, useCallback } from 'react'
+import type {
+	ConfigResponse,
+	FileListResponse,
+	ShowListResponse
+} from '@/lib/api'
+import { api } from '@/lib/api'
 
 export function useConfig() {
-  const [config, setConfig] = useState<ConfigResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
+	const [config, setConfig] = useState<ConfigResponse | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
+	const isMountedRef = useRef(true)
 
-  const fetchConfig = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getConfig();
-      if (isMountedRef.current) {
-        setConfig(data);
-        setError(null);
-      }
-    } catch (err) {
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : "Failed to fetch config");
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-    }
-  };
+	const fetchConfig = useCallback(async () => {
+		try {
+			setLoading(true)
+			const data = await api.getConfig()
+			if (isMountedRef.current) {
+				setConfig(data)
+				setError(null)
+			}
+		} catch (err) {
+			if (isMountedRef.current) {
+				setError(err instanceof Error ? err.message : 'Failed to fetch config')
+			}
+		} finally {
+			if (isMountedRef.current) {
+				setLoading(false)
+			}
+		}
+	}, [])
 
-  useEffect(() => {
-    fetchConfig();
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+	useEffect(() => {
+		fetchConfig()
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [fetchConfig])
 
-  return { config, loading, error, refetch: fetchConfig };
+	return { config, loading, error, refetch: fetchConfig }
 }
 
 export function useFiles() {
-  const [files, setFiles] = useState<FileListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+	const [files, setFiles] = useState<FileListResponse | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
 
-  const fetchFiles = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getFiles();
-      setFiles(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch files");
-    } finally {
-      setLoading(false);
-    }
-  };
+	const fetchFiles = useCallback(async () => {
+		try {
+			setLoading(true)
+			const data = await api.getFiles()
+			setFiles(data)
+			setError(null)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to fetch files')
+		} finally {
+			setLoading(false)
+		}
+	}, [])
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
+	useEffect(() => {
+		fetchFiles()
+	}, [fetchFiles])
 
-  return { files, loading, error, refetch: fetchFiles };
+	return { files, loading, error, refetch: fetchFiles }
 }
 
 export function useShows() {
-  const [shows, setShows] = useState<ShowListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+	const [shows, setShows] = useState<ShowListResponse | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
 
-  const fetchShows = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getShows();
-      setShows(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch shows");
-    } finally {
-      setLoading(false);
-    }
-  };
+	const fetchShows = useCallback(async () => {
+		try {
+			setLoading(true)
+			const data = await api.getShows()
+			setShows(data)
+			setError(null)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to fetch shows')
+		} finally {
+			setLoading(false)
+		}
+	}, [])
 
-  useEffect(() => {
-    fetchShows();
-  }, []);
+	useEffect(() => {
+		fetchShows()
+	}, [fetchShows])
 
-  return { shows, loading, error, refetch: fetchShows };
+	return { shows, loading, error, refetch: fetchShows }
 }
