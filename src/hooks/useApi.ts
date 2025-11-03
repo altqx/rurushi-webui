@@ -34,11 +34,12 @@ export function useConfig() {
 	}, [])
 
 	useEffect(() => {
+		isMountedRef.current = true
 		fetchConfig()
 		return () => {
 			isMountedRef.current = false
 		}
-	}, [fetchConfig])
+	}, [])
 
 	return { config, loading, error, refetch: fetchConfig }
 }

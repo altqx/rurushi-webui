@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useConfig, useFiles, useShows } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import type { SubtitleMode } from '@/lib/api'
@@ -14,6 +14,12 @@ export default function Home() {
 	const [statusMessage, setStatusMessage] = useState('Ready')
 	const [isScanning, setIsScanning] = useState(false)
 
+	useEffect(() => {
+		if (config?.videos_folder && !videosFolder) {
+			setVideosFolder(config.videos_folder)
+		}
+	}, [config?.videos_folder, videosFolder])
+
 	const handleSetFolder = async () => {
 		if (!videosFolder.trim()) {
 			setStatusMessage('Please enter a folder path')
@@ -23,7 +29,7 @@ export default function Home() {
 		try {
 			await api.setFolder(videosFolder)
 			setStatusMessage('Folder saved successfully')
-			refetch()
+			setTimeout(() => refetch(), 100)
 		} catch (err) {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to set folder'}`
@@ -79,7 +85,7 @@ export default function Home() {
 		try {
 			await api.startStreaming()
 			setStatusMessage('Streaming started')
-			refetch()
+			setTimeout(() => refetch(), 100)
 		} catch (err) {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to start streaming'}`
@@ -91,7 +97,7 @@ export default function Home() {
 		try {
 			await api.setSubtitleMode(mode)
 			setStatusMessage(`Subtitle mode set to ${mode}`)
-			refetch()
+			setTimeout(() => refetch(), 100)
 		} catch (err) {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to set subtitle mode'}`
@@ -185,7 +191,7 @@ export default function Home() {
 					<div className='flex gap-2'>
 						<input
 							type='text'
-							value={videosFolder || config.videos_folder || ''}
+							value={videosFolder}
 							onChange={(e) => setVideosFolder(e.target.value)}
 							placeholder='Enter videos folder path...'
 							className='flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500'
