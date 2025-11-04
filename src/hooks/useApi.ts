@@ -25,6 +25,7 @@ export function useConfig() {
 		} catch (err) {
 			if (isMountedRef.current) {
 				setError(err instanceof Error ? err.message : 'Failed to fetch config')
+				console.error('Failed to fetch config:', err)
 			}
 		} finally {
 			if (isMountedRef.current) {
@@ -39,7 +40,7 @@ export function useConfig() {
 		return () => {
 			isMountedRef.current = false
 		}
-	}, [])
+	}, [fetchConfig])
 
 	return { config, loading, error, refetch: fetchConfig }
 }
@@ -57,6 +58,7 @@ export function useFiles() {
 			setError(null)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to fetch files')
+			console.error('Failed to fetch files:', err)
 		} finally {
 			setLoading(false)
 		}
@@ -82,6 +84,7 @@ export function useShows() {
 			setError(null)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to fetch shows')
+			console.error('Failed to fetch shows:', err)
 		} finally {
 			setLoading(false)
 		}

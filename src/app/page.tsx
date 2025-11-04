@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useConfig, useFiles, useShows } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import type { SubtitleMode } from '@/lib/api'
@@ -13,6 +13,7 @@ export default function Home() {
 	const [videosFolder, setVideosFolder] = useState('')
 	const [statusMessage, setStatusMessage] = useState('Ready')
 	const [isScanning, setIsScanning] = useState(false)
+	const folderInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
 		if (config?.videos_folder && !videosFolder) {
@@ -20,9 +21,47 @@ export default function Home() {
 		}
 	}, [config?.videos_folder, videosFolder])
 
+	const handleSelectFolder = async () => {
+		if (!folderInputRef.current) return
+
+		try {
+			// Trigger the folder picker dialog
+			folderInputRef.current.click()
+		} catch (err) {
+			setStatusMessage(
+				`Error: ${err instanceof Error ? err.message : 'Failed to open folder picker'}`
+			)
+		}
+	}
+
+	const handleFolderSelected = async (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const files = e.currentTarget.files
+		if (!files || files.length === 0) return
+
+		try {
+			// Get the folder path from the selected file
+			const file = files[0]
+			const path = file.webkitRelativePath?.split('/')[0] || file.name
+
+			if (!path) {
+				setStatusMessage('Failed to get folder path')
+				return
+			}
+
+			setVideosFolder(path)
+			setStatusMessage(`Selected folder: ${path}`)
+		} catch (err) {
+			setStatusMessage(
+				`Error: ${err instanceof Error ? err.message : 'Failed to select folder'}`
+			)
+		}
+	}
+
 	const handleSetFolder = async () => {
 		if (!videosFolder.trim()) {
-			setStatusMessage('Please enter a folder path')
+			setStatusMessage('Please enter or select a folder path')
 			return
 		}
 
@@ -34,6 +73,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to set folder'}`
 			)
+			console.error('Failed to set folder:', err)
 		}
 	}
 
@@ -52,6 +92,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to scan'}`
 			)
+			console.error('Failed to scan videos:', err)
 		} finally {
 			setIsScanning(false)
 		}
@@ -66,6 +107,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to play'}`
 			)
+			console.error('Failed to play file:', err)
 		}
 	}
 
@@ -78,6 +120,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to stop'}`
 			)
+			console.error('Failed to stop playback:', err)
 		}
 	}
 
@@ -90,18 +133,26 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to start streaming'}`
 			)
+			console.error('Failed to start streaming:', err)
 		}
 	}
 
 	const handleSetSubtitleMode = async (mode: SubtitleMode) => {
 		try {
+			console.log('Setting subtitle mode to:', mode)
 			await api.setSubtitleMode(mode)
 			setStatusMessage(`Subtitle mode set to ${mode}`)
-			setTimeout(() => refetch(), 100)
+
+			// Force a refetch to update the UI
+			setTimeout(() => {
+				console.log('Refetching config after subtitle mode change')
+				refetch()
+			}, 200)
 		} catch (err) {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to set subtitle mode'}`
 			)
+			console.error('Failed to set subtitle mode:', err)
 		}
 	}
 
@@ -114,6 +165,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to add to playlist'}`
 			)
+			console.error('Failed to add to playlist:', err)
 		}
 	}
 
@@ -126,6 +178,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to remove from playlist'}`
 			)
+			console.error('Failed to remove from playlist:', err)
 		}
 	}
 
@@ -141,6 +194,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to move item'}`
 			)
+			console.error('Failed to move playlist item:', err)
 		}
 	}
 
@@ -153,6 +207,7 @@ export default function Home() {
 			setStatusMessage(
 				`Error: ${err instanceof Error ? err.message : 'Failed to clear playlist'}`
 			)
+			console.error('Failed to clear playlist:', err)
 		}
 	}
 
@@ -198,6 +253,14 @@ export default function Home() {
 						/>
 						<button
 							type='button'
+							onClick={handleSelectFolder}
+							className='px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded font-medium transition'
+							title='Open folder picker'
+						>
+							Browse
+						</button>
+						<button
+							type='button'
 							onClick={handleSetFolder}
 							className='px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded font-medium transition'
 						>
@@ -212,6 +275,16 @@ export default function Home() {
 							{isScanning ? 'Scanning...' : 'Scan Videos'}
 						</button>
 					</div>
+
+					<input
+						ref={folderInputRef}
+						type='file'
+						multiple
+						onChange={handleFolderSelected}
+						className='hidden'
+						aria-label='Select folder'
+						{...({ webkitdirectory: true, directory: true } as any)}
+					/>
 
 					<div className='text-sm text-gray-400 space-y-1'>
 						<p>Videos found: {config.video_count}</p>
